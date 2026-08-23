@@ -1,39 +1,40 @@
-from flask import Flask, render_template, jsonify, request
-import sudoku_logic
+import os
+
+from flask import Flask, jsonify, render_template, request, session
+
+from sudoku.generator import SIZE
+from sudoku.puzzle import generate_puzzle
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
 
-# Keep a simple in-memory store for current puzzle and solution
-CURRENT = {
-    'puzzle': None,
-    'solution': None
-}
 
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/new')
+
+@app.route("/api/new-game", methods=["POST"])
 def new_game():
-    clues = int(request.args.get('clues', 35))
-    puzzle, solution = sudoku_logic.generate_puzzle(clues)
-    CURRENT['puzzle'] = puzzle
-    CURRENT['solution'] = solution
-    return jsonify({'puzzle': puzzle})
+    clues = int((request.json or {}).get("clues", 35))
+    puzzle, solution = generate_puzzle(clues)
+    session["solution"] = solution
+    return jsonify({"puzzle": puzzle})
 
-@app.route('/check', methods=['POST'])
+
+@app.route("/api/check", methods=["POST"])
 def check_solution():
-    data = request.json
-    board = data.get('board')
-    solution = CURRENT.get('solution')
+    board = (request.json or {}).get("board")
+    solution = session.get("solution")
     if solution is None:
-        return jsonify({'error': 'No game in progress'}), 400
+        return jsonify({"error": "No game in progress"}), 400
     incorrect = []
-    for i in range(sudoku_logic.SIZE):
-        for j in range(sudoku_logic.SIZE):
+    for i in range(SIZE):
+        for j in range(SIZE):
             if board[i][j] != solution[i][j]:
                 incorrect.append([i, j])
-    return jsonify({'incorrect': incorrect})
+    return jsonify({"incorrect": incorrect})
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=True)

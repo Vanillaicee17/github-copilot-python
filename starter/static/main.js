@@ -48,7 +48,11 @@ function renderPuzzle(puz) {
 }
 
 async function newGame() {
-  const res = await fetch('/new');
+  const res = await fetch('/api/new-game', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({clues: 35})
+  });
   const data = await res.json();
   renderPuzzle(data.puzzle);
   document.getElementById('message').innerText = '';
@@ -66,7 +70,7 @@ async function checkSolution() {
       board[i][j] = val ? parseInt(val, 10) : 0;
     }
   }
-  const res = await fetch('/check', {
+  const res = await fetch('/api/check', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({board})

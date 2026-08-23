@@ -48,10 +48,11 @@ function renderPuzzle(puz) {
 }
 
 async function newGame() {
+  const difficulty = document.getElementById('difficulty').value;
   const res = await fetch('/api/new-game', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({clues: 35})
+    body: JSON.stringify({difficulty})
   });
   const data = await res.json();
   renderPuzzle(data.puzzle);

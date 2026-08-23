@@ -7,11 +7,17 @@ def test_index_returns_200(client):
 
 
 def test_new_game_returns_puzzle(client):
-    res = client.post("/api/new-game", json={"clues": 35})
+    res = client.post("/api/new-game", json={"difficulty": "easy"})
     assert res.status_code == 200
     data = res.get_json()
     filled = sum(1 for row in data["puzzle"] for cell in row if cell != 0)
-    assert filled == 35
+    assert 40 <= filled <= 45
+
+
+def test_new_game_rejects_unknown_difficulty(client):
+    res = client.post("/api/new-game", json={"difficulty": "impossible"})
+    assert res.status_code == 400
+    assert "error" in res.get_json()
 
 
 def test_check_without_active_game_returns_error(client):
@@ -21,7 +27,7 @@ def test_check_without_active_game_returns_error(client):
 
 
 def test_check_flags_incorrect_cells(client):
-    client.post("/api/new-game", json={"clues": 35})
+    client.post("/api/new-game", json={"difficulty": "easy"})
     with client.session_transaction() as sess:
         solution = sess["solution"]
 
@@ -36,7 +42,7 @@ def test_check_flags_incorrect_cells(client):
 
 
 def test_check_passes_on_correct_board(client):
-    client.post("/api/new-game", json={"clues": 35})
+    client.post("/api/new-game", json={"difficulty": "easy"})
     with client.session_transaction() as sess:
         solution = sess["solution"]
 

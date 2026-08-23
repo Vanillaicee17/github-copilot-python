@@ -3,7 +3,7 @@ import os
 from flask import Flask, jsonify, render_template, request, session
 
 from sudoku.generator import SIZE
-from sudoku.puzzle import generate_puzzle
+from sudoku.puzzle import DIFFICULTY_CLUES, generate_puzzle
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
@@ -16,10 +16,12 @@ def index():
 
 @app.route("/api/new-game", methods=["POST"])
 def new_game():
-    clues = int((request.json or {}).get("clues", 35))
-    puzzle, solution = generate_puzzle(clues)
+    difficulty = (request.json or {}).get("difficulty", "medium")
+    if difficulty not in DIFFICULTY_CLUES:
+        return jsonify({"error": f"Unknown difficulty: {difficulty!r}"}), 400
+    puzzle, solution = generate_puzzle(difficulty)
     session["solution"] = solution
-    return jsonify({"puzzle": puzzle})
+    return jsonify({"puzzle": puzzle, "difficulty": difficulty})
 
 
 @app.route("/api/check", methods=["POST"])

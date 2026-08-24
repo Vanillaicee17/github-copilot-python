@@ -42,19 +42,23 @@ python app.py
 
 7. Open http://127.0.0.1:5000 in your browser.
 
-## Project Instructions
+## Running the Tests
 
-Use GitHub Copilot to refactor the code for this game to add more advanced features. The goal is to create a more modern and maintainable codebase and add additional functionality to the final product. You can use any combination of code completion and chat features, like Ask, Edit, or Agent modes.
+Test dependencies (`pytest`) are already listed in `requirements.txt`, so step 5 above installs them. From the `starter/` directory, with the virtual environment active:
 
-- Errors should be handled gracefully with appropriate messages to the user.
-- Implement a Sudoku board generator that creates a valid Sudoku puzzle with a unique solution.
-- Add a timer to track how long it takes to solve the puzzle.
-- Implement a solution checker that verifies if the user's solution is correct using event delegation.
-- Add a difficulty selector to allow users to choose between easy, medium, and hard puzzles.
-- Add a hint feature that provides clues for the user that are noted with unique colors.
-- Add a check puzzle button that checks the current state of the board against the solution.
-- User should get immediate feedback on their input, such as highlighting invalid entries.
-- Top 10 scores should be saved in local storage and displayed on the page with the user's name, time taken, hints used, and difficulty level.
-- The game should be responsive and work well on both desktop and mobile devices.
-- UI colors should be visually appealing and accessible.
-- Completed and correct puzzles should display a congratulatory message with the time taken and hints used and ask for the user's name for Top 10 times.
+```bash
+pytest -v
+```
+
+## Features
+
+- **Puzzle generation with a guaranteed unique solution** (`sudoku_logic.py`) — a randomized-backtracking full grid is carved down cell by cell, re-verifying after every removal (via a solution counter that branches on the most-constrained cell) that exactly one solution still exists. Generation is bounded to a time budget rather than a fixed retry count, so even the sparsest Hard-difficulty boards can't cause a long hang.
+- **Difficulty levels** — Easy (40–45 clues), Medium (30–35), Hard (22–27), selected before starting a new game.
+- **Locked givens** — prefilled cells (and hints) are rendered read-only and visually distinct; they can't be edited or flagged.
+- **Live conflict highlighting** — every keystroke/blur re-checks the board client-side for row/column/box duplicates and highlights only the specific cell(s) in conflict, distinct in color from the Check button's solution mismatches.
+- **Check** — compares filled, non-given cells against the actual stored solution (kept server-side in the Flask session, never sent to the client) and highlights any that are wrong.
+- **Hint** — reveals one correct value for a currently-empty cell and locks it like a given; hints used are tracked per game and included in the saved score.
+- **Timer** — starts on new game, stops the instant the puzzle is solved.
+- **Dark mode** — follows the OS preference automatically, with a manual toggle that overrides it and persists the choice in `localStorage`.
+- **Completion message** — a full board with zero conflicts is solved by construction (thanks to the uniqueness guarantee above), so no round trip is needed to detect a win.
+- **Top 10 leaderboard** — completing a puzzle prompts for a name and saves `{name, time, difficulty, hints}` to `localStorage`, sorted by fastest time and capped at 10 entries.

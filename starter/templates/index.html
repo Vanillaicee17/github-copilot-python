@@ -6,7 +6,10 @@
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Sudoku Game</h1>
+  <div class="topbar">
+    <h1>Sudoku Game</h1>
+    <button id="dark-mode-toggle" type="button">Dark Mode</button>
+  </div>
   <div id="sudoku-board"></div>
   <div class="controls">
     <label for="difficulty">Difficulty</label>
@@ -17,8 +20,11 @@
     </select>
     <button id="new-game">New Game</button>
     <button id="check-solution">Check Solution</button>
+    <button id="hint">Hint</button>
+    <span id="timer">0:00</span>
     <span id="message"></span>
   </div>
-  <script src="/static/main.js"></script>
+  <script type="module" src="/static/js/theme.js"></script>
+  <script type="module" src="/static/js/game.js"></script>
 </body>
 </html>

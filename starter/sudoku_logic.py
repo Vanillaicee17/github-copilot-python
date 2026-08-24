@@ -1,5 +1,6 @@
 import copy
 import random
+import time
 
 SIZE = 9
 EMPTY = 0
@@ -13,11 +14,11 @@ DIFFICULTY_CLUES = {
     'hard': (22, 27),
 }
 
-MAX_GENERATION_ATTEMPTS = 20
-
-
-class PuzzleGenerationStalled(Exception):
-    """Raised when a single carving pass can't reach the target clue count."""
+# A fixed attempt count doesn't bound wall-clock time well when individual
+# carving attempts have high variance (some finish in well under a second,
+# others take several) -- a time budget does, at the cost of occasionally
+# landing a couple of clues above the exact target instead of on it.
+GENERATION_TIME_BUDGET_SECONDS = 4.0
 
 
 def clue_target_for_difficulty(difficulty):
@@ -109,28 +110,35 @@ def remove_cells(board, clues):
         else:
             board[row][col] = value
 
-    if remaining != clues:
-        raise PuzzleGenerationStalled(f'could not carve down to {clues} clues on this grid')
+    # Note: `remaining` may be above `clues` here -- some cells simply
+    # can't be removed without breaking uniqueness on this particular
+    # grid. That's expected and left to the caller to handle (see
+    # generate_puzzle), not treated as an error.
     return board
 
 def generate_puzzle(clues=35):
     if not 0 <= clues <= SIZE * SIZE:
         raise ValueError(f'clues must be between 0 and {SIZE * SIZE}')
 
-    for _ in range(MAX_GENERATION_ATTEMPTS):
+    best_puzzle, best_solution, best_filled = None, None, None
+    deadline = time.monotonic() + GENERATION_TIME_BUDGET_SECONDS
+
+    while True:
         board = create_empty_board()
         fill_board(board)
         solution = deep_copy(board)
-        try:
-            remove_cells(board, clues)
-        except PuzzleGenerationStalled:
-            # This grid's cell layout couldn't carve down that far -- a
-            # different solved grid might, so retry from scratch rather
-            # than backtracking within the same one.
-            continue
-        puzzle = deep_copy(board)
-        return puzzle, solution
+        remove_cells(board, clues)
+        filled = sum(1 for row in board for cell in row if cell != EMPTY)
 
-    raise PuzzleGenerationStalled(
-        f'failed to generate a puzzle with {clues} clues after {MAX_GENERATION_ATTEMPTS} attempts'
-    )
+        if filled == clues:
+            return board, solution  # hit the exact target
+
+        # This grid's layout couldn't carve all the way down -- a
+        # different solved grid might, so retry from scratch rather than
+        # backtracking within the same one. Keep the closest result seen
+        # so far in case the time budget runs out before one hits exactly.
+        if best_filled is None or filled < best_filled:
+            best_puzzle, best_solution, best_filled = board, solution, filled
+
+        if time.monotonic() >= deadline:
+            return best_puzzle, best_solution

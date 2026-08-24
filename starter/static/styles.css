@@ -1,6 +1,50 @@
+:root {
+    --background: #f4f4f4;
+    --board-background: #ffffff;
+    --cell-background: #fafafa;
+    --border-color: #bbbbbb;
+    --line-strong: #333333;
+    --prefilled-cell-background: #e0e0e0;
+    --prefilled-cell-color: #333333;
+    --incorrect-cell-background: #ffcdd2;
+    --button-background: #1976d2;
+    --button-hover: #1565c0;
+    --button-text: #ffffff;
+    --text-color: #333333;
+    --focus-background: #e0f7fa;
+    --error-text: #d32f2f;
+    --success-text: #388e3c;
+    --box-a: #fafafa;
+    --box-b: #eef5f8;
+    --shadow: rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #1b1d1f;
+        --board-background: #25282b;
+        --cell-background: #2d3135;
+        --border-color: #687078;
+        --line-strong: #d7dde2;
+        --prefilled-cell-background: #454b51;
+        --prefilled-cell-color: #f2f4f5;
+        --incorrect-cell-background: #6b3038;
+        --button-background: #3b8edb;
+        --button-hover: #5aa6e8;
+        --button-text: #101417;
+        --text-color: #f2f4f5;
+        --focus-background: #164b58;
+        --error-text: #ff8f98;
+        --success-text: #78d69a;
+        --box-a: #2d3135;
+        --box-b: #353d42;
+        --shadow: rgba(0, 0, 0, 0.35);
+    }
+}
+
 body {
     font-family: Arial, sans-serif;
-    background: #f4f4f4;
+    background: var(--background);
     text-align: center;
     margin: 0;
     padding: 0;
@@ -8,15 +52,16 @@ body {
 
 h1 {
     margin-top: 30px;
-    color: #333;
+    color: var(--text-color);
 }
 
 #sudoku-board {
     display: inline-block;
     margin: 30px auto;
-    border: 4px solid #333;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: calc(100vw - 16px);
+    border: 4px solid var(--line-strong);
+    background: var(--board-background);
+    box-shadow: 0 2px 8px var(--shadow);
 }
 
 .sudoku-row {
@@ -24,38 +69,51 @@ h1 {
 }
 
 .sudoku-cell {
-    width: 40px;
-    height: 40px;
-    border: 1px solid #bbb;
+    width: clamp(28px, calc((100vw - 32px) / 9), 40px);
+    height: clamp(28px, calc((100vw - 32px) / 9), 40px);
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
     text-align: center;
     font-size: 20px;
     outline: none;
-    background: #fafafa;
+    background: var(--cell-background);
+    color: var(--text-color);
     transition: background 0.2s;
 }
 
+.sudoku-cell[data-box-parity="0"] {
+    background: var(--box-a);
+}
+
+.sudoku-cell[data-box-parity="1"] {
+    background: var(--box-b);
+}
+
 .sudoku-cell:focus {
-    background: #e0f7fa;
+    background: var(--focus-background);
+    box-shadow: inset 0 0 0 2px var(--line-strong);
 }
 
 .sudoku-cell.prefilled {
-    background: #e0e0e0;
+    background: var(--prefilled-cell-background);
     font-weight: bold;
-    color: #333;
+    color: var(--prefilled-cell-color);
 }
 
 .sudoku-cell.incorrect {
-    background: #ffcdd2;
+    background: var(--incorrect-cell-background);
+    color: var(--text-color);
+    box-shadow: inset 0 0 0 2px var(--error-text);
 }
 
 .sudoku-cell:nth-child(3),
 .sudoku-cell:nth-child(6) {
-    border-right: 3px solid #333;
+    border-right: 3px solid var(--line-strong);
 }
 
 .sudoku-row:nth-child(3) .sudoku-cell,
 .sudoku-row:nth-child(6) .sudoku-cell {
-    border-bottom: 3px solid #333;
+    border-bottom: 3px solid var(--line-strong);
 }
 
 .controls {
@@ -67,19 +125,19 @@ button {
     margin: 0 8px;
     font-size: 16px;
     border: none;
-    background: #1976d2;
-    color: #fff;
+    background: var(--button-background);
+    color: var(--button-text);
     border-radius: 4px;
     cursor: pointer;
     transition: background 0.2s;
 }
 
 button:hover {
-    background: #1565c0;
+    background: var(--button-hover);
 }
 
 #message {
     margin-left: 20px;
     font-size: 16px;
-    color: #d32f2f;
+    color: var(--error-text);
 }

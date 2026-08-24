@@ -17,10 +17,12 @@
     --box-a: #fafafa;
     --box-b: #eef5f8;
     --shadow: rgba(0, 0, 0, 0.1);
+    --conflict-cell-background: #ffe0b2;
 }
 
+/* Follows the OS preference automatically... */
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
         --background: #1b1d1f;
         --board-background: #25282b;
         --cell-background: #2d3135;
@@ -39,19 +41,53 @@
         --box-a: #2d3135;
         --box-b: #353d42;
         --shadow: rgba(0, 0, 0, 0.35);
+        --conflict-cell-background: #7a5211;
     }
+}
+
+/* ...but the manual toggle (static/js/theme.js) always wins over that. */
+:root[data-theme="dark"] {
+    --background: #1b1d1f;
+    --board-background: #25282b;
+    --cell-background: #2d3135;
+    --border-color: #687078;
+    --line-strong: #d7dde2;
+    --prefilled-cell-background: #454b51;
+    --prefilled-cell-color: #f2f4f5;
+    --incorrect-cell-background: #6b3038;
+    --button-background: #3b8edb;
+    --button-hover: #5aa6e8;
+    --button-text: #101417;
+    --text-color: #f2f4f5;
+    --focus-background: #164b58;
+    --error-text: #ff8f98;
+    --success-text: #78d69a;
+    --box-a: #2d3135;
+    --box-b: #353d42;
+    --shadow: rgba(0, 0, 0, 0.35);
+    --conflict-cell-background: #7a5211;
 }
 
 body {
     font-family: Arial, sans-serif;
     background: var(--background);
+    color: var(--text-color);
     text-align: center;
     margin: 0;
     padding: 0;
+    transition: background 0.2s, color 0.2s;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 30px;
 }
 
 h1 {
-    margin-top: 30px;
+    margin: 0;
     color: var(--text-color);
 }
 
@@ -106,6 +142,13 @@ h1 {
     box-shadow: inset 0 0 0 2px var(--error-text);
 }
 
+/* A live sibling conflict (row/col/box) -- distinct from .incorrect, which
+   only appears after Check compares against the actual solution. */
+.sudoku-cell.conflict {
+    background: var(--conflict-cell-background);
+    color: var(--text-color);
+}
+
 .sudoku-cell:nth-child(3),
 .sudoku-cell:nth-child(6) {
     border-right: 3px solid var(--line-strong);
@@ -118,17 +161,25 @@ h1 {
 
 .controls {
     margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: calc(100vw - 16px);
+}
+
+button, select {
+    padding: 8px 18px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 button {
-    padding: 8px 18px;
-    margin: 0 8px;
-    font-size: 16px;
-    border: none;
     background: var(--button-background);
     color: var(--button-text);
-    border-radius: 4px;
-    cursor: pointer;
     transition: background 0.2s;
 }
 
@@ -136,8 +187,24 @@ button:hover {
     background: var(--button-hover);
 }
 
+select {
+    background: var(--cell-background);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+#timer {
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-color);
+}
+
 #message {
     margin-left: 20px;
     font-size: 16px;
     color: var(--error-text);
+}
+
+#message.success {
+    color: var(--success-text);
 }

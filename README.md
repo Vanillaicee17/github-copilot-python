@@ -56,7 +56,7 @@ pytest -v
 - **Difficulty levels** — Easy (40–45 clues), Medium (30–35), Hard (22–27), selected before starting a new game.
 - **Locked givens** — prefilled cells (and hints) are rendered read-only and visually distinct; they can't be edited or flagged.
 - **Live conflict highlighting** — every keystroke/blur re-checks the board client-side for row/column/box duplicates and highlights only the specific cell(s) in conflict, distinct in color from the Check button's solution mismatches.
-- **Check** — compares filled, non-given cells against the actual stored solution (kept server-side in the Flask session, never sent to the client) and highlights any that are wrong.
+- **Check** — compares filled, non-given cells against the actual stored solution (kept server-side in the Flask session, never sent to the client) and highlights any that are wrong. The congratulatory message only appears once every cell is filled and none are flagged wrong; an empty or partially-filled board with no wrong entries yet is reported as "looks correct so far," not solved.
 - **Hint** — reveals one correct value for a currently-empty cell and locks it like a given; hints used are tracked per game and included in the saved score.
 - **Timer** — starts on new game, stops the instant the puzzle is solved.
 - **Dark mode** — follows the OS preference automatically, with a manual toggle that overrides it and persists the choice in `localStorage`.

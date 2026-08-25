@@ -206,9 +206,11 @@ async function newGame() {
 }
 
 async function checkSolution() {
+  if (solved) return;
+
   const boardDiv = document.getElementById('sudoku-board');
-  const inputs = boardDiv.getElementsByTagName('input');
-  const board = readBoard(Array.from(inputs));
+  const inputs = Array.from(boardDiv.getElementsByTagName('input'));
+  const board = readBoard(inputs);
   const res = await fetch('/check', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -222,17 +224,35 @@ async function checkSolution() {
     return;
   }
   const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
-  for (let idx = 0; idx < inputs.length; idx++) {
-    const inp = inputs[idx];
+  for (const inp of inputs) {
     if (inp.disabled) continue;
+    const idx = Number(inp.dataset.row) * SIZE + Number(inp.dataset.col);
     inp.classList.toggle('incorrect', incorrect.has(idx));
   }
-  if (incorrect.size === 0) {
-    msg.classList.add('success');
-    msg.innerText = 'Congratulations! You solved it!';
-  } else {
+
+  // /check only reports whether the *filled* cells are wrong, so an empty
+  // or partial board with zero wrong entries must not read as "solved" --
+  // completion requires every cell filled AND nothing flagged incorrect.
+  if (incorrect.size > 0) {
     msg.classList.remove('success');
     msg.innerText = 'Some cells are incorrect.';
+  } else if (!isBoardFull(board)) {
+    msg.classList.remove('success');
+    msg.innerText = 'Looks correct so far -- keep filling in the rest.';
+  } else {
+    solved = true;
+    stopTimer();
+    for (const inp of inputs) inp.disabled = true;
+    msg.classList.add('success');
+    msg.innerText = 'Congratulations! You solved it!';
+    // leaderboard.js listens for this to prompt for a name and save the score.
+    document.dispatchEvent(new CustomEvent('sudoku:solved', {
+      detail: {
+        difficulty: currentDifficulty,
+        hints: hintsUsed,
+        elapsedSeconds: timerElapsedSeconds,
+      },
+    }));
   }
 }
 

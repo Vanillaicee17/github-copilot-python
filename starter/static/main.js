@@ -223,22 +223,24 @@ async function checkSolution() {
     msg.innerText = data.error;
     return;
   }
-  const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
+  // /check only reports cells that are *filled* and wrong -- an empty cell
+  // isn't "wrong" from the server's point of view, but it's still not done,
+  // so flag it here too: an incomplete board should read as incomplete, not
+  // silently pass because nothing filled in yet happens to be wrong.
+  const wrong = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
+  let allFilledAndCorrect = true;
   for (const inp of inputs) {
     if (inp.disabled) continue;
     const idx = Number(inp.dataset.row) * SIZE + Number(inp.dataset.col);
-    inp.classList.toggle('incorrect', incorrect.has(idx));
+    const missing = inp.value === '';
+    const flagged = wrong.has(idx) || missing;
+    inp.classList.toggle('incorrect', flagged);
+    if (flagged) allFilledAndCorrect = false;
   }
 
-  // /check only reports whether the *filled* cells are wrong, so an empty
-  // or partial board with zero wrong entries must not read as "solved" --
-  // completion requires every cell filled AND nothing flagged incorrect.
-  if (incorrect.size > 0) {
+  if (!allFilledAndCorrect) {
     msg.classList.remove('success');
     msg.innerText = 'Some cells are incorrect.';
-  } else if (!isBoardFull(board)) {
-    msg.classList.remove('success');
-    msg.innerText = 'Looks correct so far -- keep filling in the rest.';
   } else {
     solved = true;
     stopTimer();
